@@ -21,6 +21,6 @@ from sendo.views import incoming_message , CreateCustomerView, CreateOrderView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('webhook/incoming-message/', incoming_message, name='incoming_message'),
-    path('api/customers/', CreateCustomerView, name='create_customer'),
-    path('api/orders/', CreateOrderView, name='create_order'),
+    path('api/customers/', CreateCustomerView.as_view(), name='create_customer'),  # Use as_view() here
+    path('api/orders/', CreateOrderView.as_view(), name='create_order'), 
 ]

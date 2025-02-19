@@ -11,30 +11,33 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from .models import Customers, Order
 import json
+from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
+from .models import Customers, Order  # Ensure these models exist
+
 class CreateCustomerView(View):
+    @csrf_exempt
     def post(self, request):
         try:
             data = json.loads(request.body)
             customer = Customers.objects.create(
-                name=data.get('name'),
-                phone=data.get('phone')
+                name=data['name'],
+                phone=data['phone']
             )
             return JsonResponse({'id': customer.id, 'message': 'Customer created successfully!'}, status=201)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
-@csrf_exempt
 class CreateOrderView(View):
+    @csrf_exempt
     def post(self, request):
         try:
             data = json.loads(request.body)
             customer = Customers.objects.get(id=data['customer_id'])
             order = Order.objects.create(
-                pickup=data.get('pickup'),
-                dropoff=data.get('dropoff'),
-                cost=data.get('cost'),
+                pickup=data['pickup'],
+                dropoff=data['dropoff'],
+                cost=data['cost'],
                 customer=customer
             )
             return JsonResponse({'id': order.id, 'message': 'Order created successfully!'}, status=201)
@@ -42,7 +45,6 @@ class CreateOrderView(View):
             return JsonResponse({'error': 'Customer not found.'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
-
 
 @csrf_exempt  # Disable CSRF for this view
 def incoming_message(request):
