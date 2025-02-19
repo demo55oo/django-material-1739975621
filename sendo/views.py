@@ -12,7 +12,6 @@ from django.views import View
 from .models import Customers, Order
 import json
 
-@csrf_exempt
 class CreateCustomerView(View):
     def post(self, request):
         try:
@@ -25,7 +24,6 @@ class CreateCustomerView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
-@csrf_exempt
 class CreateOrderView(View):
     def post(self, request):
         try:
