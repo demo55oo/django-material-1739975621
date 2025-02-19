@@ -58,6 +58,12 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'sendyadmin.urls'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_URL = 'static/'
+CSRF_TRUSTED_ORIGINS = [
+    'https://django-material-1739975621-production.up.railway.app',
+    'https://another-trusted-origin.com',
+    # Add more trusted origins as needed
+]
+
 
 TEMPLATES = [
     {
