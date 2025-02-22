@@ -4,5 +4,6 @@ django-jazzmin==3.0.0
 djangorestframework==3.15.1
 exceptiongroup==1.2.2
 gunicorn==22.0.0
+twilio
 whitenoise
 django-environ

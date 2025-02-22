@@ -63,7 +63,11 @@ CSRF_TRUSTED_ORIGINS = [
     'https://another-trusted-origin.com',
     # Add more trusted origins as needed
 ]
-
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
+TWILIO_SMS_NUMBER = os.getenv("TWILIO_SMS_NUMBER")
 
 TEMPLATES = [
     {

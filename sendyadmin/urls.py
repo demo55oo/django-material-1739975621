@@ -16,11 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from sendo.views import incoming_message , CreateCustomerView, CreateOrderView
+from sendo.views import incoming_message , CreateCustomerView, CreateOrderView ,incoming_sms, list_messages, send_message
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('webhook/incoming-message/', incoming_message, name='incoming_message'),
     path('api/customers/', CreateCustomerView.as_view(), name='create_customer'),  # Use as_view() here
-    path('api/orders/', CreateOrderView.as_view(), name='create_order'), 
+    path('api/orders/', CreateOrderView.as_view(), name='create_order'), \
+     path("incoming/", incoming_sms, name="incoming_sms"),
+    path("messages/<str:session_id>/", list_messages, name="list_messages"),
+    path("send/", send_message, name="send_message"),
 ]

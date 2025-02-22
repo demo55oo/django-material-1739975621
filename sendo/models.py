@@ -39,3 +39,15 @@ class IncomingMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.from_number} to {self.to_number} at {self.timestamp}"
+    
+from django.db import models
+
+class ChatSession(models.Model):
+    session_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Message(models.Model):
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
+    sender = models.CharField(max_length=50)  # "user" or "agent"
+    body = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
