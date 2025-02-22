@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from twilio.rest import Client
 from django import forms
 from .models import ChatSession, Message, Customers, Order, IncomingMessage
+from urllib.parse import quote
 
 # Load Twilio credentials from environment variables
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
@@ -43,18 +44,18 @@ class ChatSessionAdmin(admin.ModelAdmin):
 
     def reply_action(self, obj):
         """Button to open the reply page."""
+        encoded_session_id = quote(obj.session_id, safe="")
         return format_html(
-            '<a class="button" href="{}">Reply</a>',
-            f"/admin/reply/{obj.session_id}"
-        )
-
+        '<a class="button" href="{}">Reply</a>',
+        f"/admin/reply/{encoded_session_id}"
+    )
     reply_action.short_description = "Reply"
 
     def get_urls(self):
         """Add a custom URL for handling replies."""
         urls = super().get_urls()
         custom_urls = [
-            path("reply/<str:session_id>/", self.admin_site.admin_view(self.reply_view), name="reply_message"),
+        path("reply/<path:session_id>/", self.admin_site.admin_view(self.reply_view), name="reply_message"),
         ]
         return custom_urls + urls
 
