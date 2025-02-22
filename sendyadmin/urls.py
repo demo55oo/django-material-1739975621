@@ -16,9 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from sendo.views import incoming_message , CreateCustomerView, CreateOrderView ,incoming_sms, list_messages, send_message
-
-
+from sendo.views import incoming_message , CreateCustomerView, CreateOrderView ,incoming_sms, list_messages, send_message,create_woodelivery_task
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('webhook/incoming-message/', incoming_message, name='incoming_message'),
@@ -27,4 +25,6 @@ urlpatterns = [
      path("incoming/", incoming_sms, name="incoming_sms"),
     path("messages/<str:session_id>/", list_messages, name="list_messages"),
     path("send/", send_message, name="send_message"),
+        path('twilio-to-woodelivery/', create_woodelivery_task, name='twilio_woodelivery'),
+
 ]

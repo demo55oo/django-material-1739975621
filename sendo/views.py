@@ -103,3 +103,78 @@ def send_message(request):
     Message.objects.create(session=session, sender="agent", body=body)
 
     return Response({"message_id": message.sid})
+
+
+import requests
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt  # Disables CSRF protection for this endpoint
+def create_woodelivery_task(request):
+    if request.method == "POST":
+        try:
+            # Extract data from Twilio Studio request
+            data = json.loads(request.body)
+
+            # Build payload for WooDelivery API
+            payload = {
+                "taskTypeId": 1,
+                "taskDesc": "Deliver package to customer",
+                "externalKey": f"ORDER{data.get('customer_id', '0000')}",
+                "merchantId": "MERCHANT001",
+                "assignedToTeamId": 2,
+                "assignedToDriverUserId": "DRIVER123",
+                "afterDateTime": "2025-02-22T18:00:59.434Z",
+                "beforeDateTime": "2025-02-22T20:00:59.434Z",
+                "dispatchAddress": data.get("pickup", "Unknown Pickup Location"),
+                "dispatchBuilding": "Warehouse A",
+                "dispatchNotes": "Fragile items",
+                "dispatchCoordinates": "-33.8754116,151.2076118",
+                "requesterName": data.get("name", "Unknown"),
+                "requesterEmail": "john@example.com",
+                "requesterPhone": data.get("phone", ""),
+                "destinationAddress": data.get("dropoff", "Unknown Dropoff Location"),
+                "destinationBuilding": "Apartment 10B",
+                "destinationCoordinates": "-33.876500,151.208000",
+                "destinationNotes": "Leave at front door",
+                "recipientName": data.get("name", "Unknown"),
+                "recipientEmail": "jane@example.com",
+                "recipientPhone": data.get("phone", ""),
+                "serviceTime": "30",
+                "priority": 20,
+                "amountDue": float(data.get("cost", 0)),
+                "deliveryFee": 5.00,
+                "capacity": 1,
+                "packages": [
+                    {
+                        "productId": "PROD123",
+                        "productDesc": "Gift Box",
+                        "orderId": f"ORDER{data.get('customer_id', '0000')}",
+                        "quantity": 1,
+                        "weight": 2.5,
+                        "price": float(data.get("cost", 0)),
+                        "packageTypeId": 1
+                    }
+                ]
+            }
+
+            # WooDelivery API URL
+            api_url = "https://api.woodelivery.com/v2/tasks"
+
+            # Headers including authorization key
+            headers = {
+                "Authorization": "Basic pk-60ade30c-8-93a93dff-9720-4881-8015-3114a5b0b79e",
+                "Content-Type": "application/json"
+            }
+
+            # Send request to WooDelivery API
+            response = requests.post(api_url, json=payload, headers=headers)
+
+            # Return WooDelivery API response
+            return JsonResponse(response.json(), status=response.status_code)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=400)
