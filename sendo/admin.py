@@ -44,7 +44,13 @@ class ChatSessionAdmin(admin.ModelAdmin):
 
     def reply_action(self, obj):
         """Button to open the reply page."""
-        encoded_session_id = quote(obj.session_id, safe="")
+        encoded_session_id = quote(obj.session_id, safe="")  # Encode session_id
+        encoded_session_id = encoded_session_id.replace(":", "%3A")  # Encode colon
+        return format_html(
+    '<a class="button" href="{}">Reply</a>',
+    f"/admin/reply/{encoded_session_id}"
+)
+
         return format_html(
         '<a class="button" href="{}">Reply</a>',
         f"/admin/reply/{encoded_session_id}"
@@ -60,7 +66,8 @@ class ChatSessionAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def reply_view(self, request, session_id):
-        """Admin panel form to send replies."""
+        session_id = session_id.replace("%3A", ":")  # Decode colon
+        print(f"Decoded session_id: {session_id}")  # Debugging
         session, _ = ChatSession.objects.get_or_create(session_id=session_id)
 
         if request.method == "POST":
