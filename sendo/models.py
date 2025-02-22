@@ -19,7 +19,7 @@ class Order(models.Model):
     # __Order_FIELDS__
     pickup = models.CharField(max_length=255, null=True, blank=True)  # Changed to CharField
     dropoff = models.CharField(max_length=255, null=True, blank=True)  # Fixed typo
-    cost = models.PositiveIntegerField(null=True, blank=True)  # Changed to PositiveIntegerField
+    cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # ✅ Allows decimals
     customer = models.ForeignKey(Customers, on_delete=models.CASCADE)
 
     # __Order_FIELDS__END
