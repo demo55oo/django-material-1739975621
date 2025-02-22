@@ -1,15 +1,12 @@
-from django.contrib import admin
 import os
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.urls import path
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from django.contrib import messages as django_messages
 from twilio.rest import Client
 from django import forms
-from .models import ChatSession, Message
-from .models import Customers, Order,IncomingMessage ,Message, ChatSession # Import your models
+from .models import ChatSession, Message, Customers, Order, IncomingMessage
 
 # Load Twilio credentials from environment variables
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
@@ -23,6 +20,12 @@ class MessageInline(admin.TabularInline):
     model = Message
     extra = 0
     readonly_fields = ("sender", "body", "timestamp")
+
+
+class ReplyForm(forms.Form):
+    """Form to send replies in Django Admin."""
+    message_body = forms.CharField(widget=forms.Textarea, required=True, label="Reply Message")
+    use_whatsapp = forms.BooleanField(required=False, label="Send via WhatsApp")
 
 
 class ChatSessionAdmin(admin.ModelAdmin):
@@ -46,7 +49,6 @@ class ChatSessionAdmin(admin.ModelAdmin):
         )
 
     reply_action.short_description = "Reply"
-    reply_action.allow_tags = True
 
     def get_urls(self):
         """Add a custom URL for handling replies."""
@@ -58,40 +60,37 @@ class ChatSessionAdmin(admin.ModelAdmin):
 
     def reply_view(self, request, session_id):
         """Admin panel form to send replies."""
+        session, _ = ChatSession.objects.get_or_create(session_id=session_id)
+
         if request.method == "POST":
-            message_body = request.POST.get("message_body")
-            use_whatsapp = request.POST.get("use_whatsapp") == "on"
+            form = ReplyForm(request.POST)
+            if form.is_valid():
+                message_body = form.cleaned_data["message_body"]
+                use_whatsapp = form.cleaned_data["use_whatsapp"]
 
-            # Send message via Twilio
-            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-            from_number = TWILIO_WHATSAPP_NUMBER if use_whatsapp else TWILIO_SMS_NUMBER
-            to_number = f"whatsapp:{session_id}" if use_whatsapp else session_id
+                # Send message via Twilio
+                client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+                from_number = TWILIO_WHATSAPP_NUMBER if use_whatsapp else TWILIO_SMS_NUMBER
+                to_number = f"whatsapp:{session_id}" if use_whatsapp else session_id
 
-            try:
-                twilio_msg = client.messages.create(to=to_number, from_=from_number, body=message_body)
+                try:
+                    twilio_msg = client.messages.create(to=to_number, from_=from_number, body=message_body)
 
-                # Save message in DB
-                session, _ = ChatSession.objects.get_or_create(session_id=session_id)
-                Message.objects.create(session=session, sender="agent", body=message_body)
+                    # Save message in DB
+                    Message.objects.create(session=session, sender="agent", body=message_body)
 
-                django_messages.success(request, f"Message sent! (ID: {twilio_msg.sid})")
-            except Exception as e:
-                django_messages.error(request, f"Error sending message: {str(e)}")
+                    messages.success(request, f"Message sent! (ID: {twilio_msg.sid})")
+                    return HttpResponseRedirect(request.path)
+                except Exception as e:
+                    messages.error(request, f"Error sending message: {str(e)}")
 
-            return HttpResponseRedirect(request.path)
+        else:
+            form = ReplyForm()
 
-        return self.render_reply_form(request, session_id)
+        return render(request, "admin/reply_form.html", {"form": form, "session_id": session_id})
 
-    def render_reply_form(self, request, session_id):
-        """Render a simple HTML form inside Django Admin."""
-        return HttpResponseRedirect(f"/admin/reply/{session_id}")
-
-
-# Register the models in Django Admin
+# Register models in Django Admin
 admin.site.register(ChatSession, ChatSessionAdmin)
-
-# Register your models here.
-
 admin.site.register(Customers)
 admin.site.register(Order)
 admin.site.register(Message)
